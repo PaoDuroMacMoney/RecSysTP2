@@ -15,6 +15,7 @@ void Logger::SetShouldLog(bool log)
 void Logger::Log(std::string message)
 {
     Logger::getInstance().log(message);
+    Logger::getInstance().endl();
 }
 
 void Logger::Endl()

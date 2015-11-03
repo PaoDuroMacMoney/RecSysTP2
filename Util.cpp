@@ -1,326 +1,102 @@
 #include "Util.h"
-#include <algorithm>
+#include "Logger.h"
 #include <string>
 #include <fstream>
 #include <iostream>
-#include <unordered_map>
 #include <sstream> 
 
-data_input * select_input(data_input * completeInput, vector<int> * allButFolder)
+content * read_content(std::string path)
 {
-	data_input * filteredInput = new data_input;
-	filteredInput->length = allButFolder->size();
-	filteredInput->data = new data_node[filteredInput->length];
+    content * input = new content;
 
-	for (unsigned int i = 0; i < allButFolder->size(); i++)
-	{
-		int selectedIndex = allButFolder->at(i);
-		data_node * itemToAdd = &completeInput->data[selectedIndex];
+    input->length = 0;
+    input->insert_index = 0;
+    
+    std::string line;
+    std::ifstream myfile(path);
 
-		filteredInput->generalAverage += itemToAdd->value;
-		filteredInput->data[i] = * itemToAdd;
+    Logger::Log("Counting lines");
 
-		loadMap(&filteredInput->userInfo, itemToAdd->userId, itemToAdd);
-		loadMap(&filteredInput->itemInfo, itemToAdd->itemId, itemToAdd);
-	}
-	filteredInput->generalAverage = filteredInput->generalAverage / filteredInput->length;
-	return filteredInput;
+    while (getline(myfile, line))
+            input->length++;
+    input->length--; //remove header from count
+    int length = input->length;
+    std::string text = std::to_string(length);
+    text += " lines";
+    Logger::Log(text);
+
+    input->data = new content_node[input->length];
+
+    std::ifstream infile(path);
+
+    std::string header;
+    getline(infile, header);//ignore header
+
+    Logger::Log("Loading content to memory");
+    infile >> *input;
+    //while (infile >> *input){}
+
+    Logger::Log("Content loaded...");
+
+    return input;
 }
 
-data_input * read_input(char const *path, bool isTarget)
+std::istream & operator>>(std::istream & stream, content & input)
 {
-	data_input * input = new data_input;
+    //input format:
+//    i0012278,{"Title":"The 'High Sign'","Year":"1921","Rated":"N/A","Released":"18 Apr 1921",
+//            "Runtime":"21 min","Genre":"Short, Comedy","Director":"Edward F. Cline, Buster Keaton",
+//            "Writer":"Edward F. Cline, Buster Keaton","Actors":"Buster Keaton",
+//            "Plot":"Buster is thrown off a train near an amusement park. There he gets a job in a "
+//    "shooting gallery run by the Blinking Buzzards mob. Ordered to kill a businessman, he winds up "
+//    "protecting the man and his daughter by outfitting their home with trick devices.",
+//            "Language":"English","Country":"USA","Awards":"N/A",
+//            "Poster":"http://ia.media-imdb.com/images/M/MV5BMTc3ODY1MDg4Ml5BMl5BanBnXkFtZTcwMjYzMDE2MQ@@._V1_SX300.jpg",
+//            "Metascore":"N/A","imdbRating":"7.7","imdbVotes":"1,502","imdbID":"tt0012278","Type":"movie","Response":"True"}
+    std::string line;
+    std::string garbage;
+    std::string itemId, title, year, rated, released, runtime, genre, director,writer,actors, plot, language, country, awards;
+    std::string poster, metascore, idmb_rating, idmb_votes, idmb_id, type, movie, response;
+    if (std::getline(stream, line))
+    {
+        std::stringstream iss(line);
 
-	input->isTarget = isTarget;
-	input->length = 0;
-	input->insertIndex = 0;
-
-	string line;
-	ifstream myfile(path);
-
-	std::cout << "Counting lines" << endl;
-	
-	while (getline(myfile, line))
-		input->length++;
-	input->length--; //remove header from count
-
-	std::cout << input->length << " lines" << endl;
-
-	input->data = new data_node[input->length];
-
-	ifstream infile(path);
-
-	string header;
-	getline(infile, header);//ignore header
-
-	std::cout << "Loading data to memory" << endl;
-
-	while (infile >> *input){}
-
-	input->generalAverage = input->generalAverage / input->length;
-
-	std::cout << "Loaded..." << endl;
-	return input;
+        if (std::getline(iss, itemId, ',') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, title, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, year, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, rated, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, released, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, runtime, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, genre, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, director, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, writer, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, actors, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, plot, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, language, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, country, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, awards, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, poster, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, metascore, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, idmb_rating, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, idmb_votes, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, idmb_id, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, type, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, movie, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, response, '"') && std::getline(iss, garbage, '\n'))
+        {
+            content_node * node = new content_node;
+            node->item_id = itemId;
+            node->title = title;
+            node->year = std::stoi(year);
+            node->rated = rated;
+            
+            input.data[input.insert_index] = *node;
+            input.insert_index++;
+        }
+        else
+        {
+            Logger::Log("Error dos brabos");
+            stream.setstate(std::ios::failbit);
+        }
+    }
 }
-
-std::istream & operator>>(std::istream & stream, data_input & input)
-{
-	if (input.isTarget)
-	{
-		readAsTarget(stream, input);
-	}
-	else
-	{
-		readAsInput(stream, input);
-	}
-	
-	return stream;
-}
-
-void readAsInput(std::istream & stream, data_input & input)
-{
-	//input format: u0026762:i2171847,6,1362062307
-	std::string line;
-	string userId, itemId, timestamp, value;
-	if (std::getline(stream, line))
-	{
-		std::stringstream iss(line);
-
-		if (std::getline(iss, userId, ':') &&
-			std::getline(iss, itemId, ',') &&
-			std::getline(iss, value, ',') &&
-			std::getline(iss, timestamp, '\n'))
-		{
-			data_node * node = new data_node;
-			node->userId = userId;
-			node->itemId = itemId;
-			node->value = stof(value);
-			node->timestamp = stoi(timestamp);
-
-			loadMap(&input.userInfo, node->userId, node);
-			loadMap(&input.itemInfo, node->itemId, node);
-
-			input.generalAverage += node->value;
-			input.data[input.insertIndex] = *node;
-			input.insertIndex++;
-		}
-		else
-		{
-			stream.setstate(std::ios::failbit);
-		}
-	}
-}
-
-void loadMap(unordered_map<string, data_info *> * map, string key, data_node * node)
-{
-	auto iterator = map->find(key);
-	data_info * info;
-	if (iterator == map->end())
-	{
-		info = new data_info();
-		map->insert(pair<string, data_info *>(key, info));		
-	}
-	else
-	{
-		info = iterator->second;
-	}
-	info->updateMaxMin(node->value);
-	info->ratedList.push_back(node);
-	info->count++;
-}
-
-void readAsTarget(std::istream & stream, data_input & input)
-{
-	//target format: u0000039:i0060196
-	std::string line;
-	string userId, itemId;
-	if (std::getline(stream, line))
-	{
-		std::stringstream iss(line);
-
-		if (std::getline(iss, userId, ':') &&
-			std::getline(iss, itemId, '\n'))
-		{
-			data_node * node = new data_node;
-			node->userId = userId;
-			node->itemId = itemId;
-			node->value = 0;
-			node->timestamp = 0;
-
-			input.data[input.insertIndex] = *node;
-			input.insertIndex++;
-		}
-		else
-		{
-			stream.setstate(std::ios::failbit);
-		}
-	}
-}
-
-float data_info::getAverage()
-{
-	if (average == 0)
-	{
-		float sum = 0;
-		for (int i = 0; i < count; i++)
-		{
-			sum += ratedList[i]->value;
-		}
-		average = sum / count;
-	}
-	return average;
-}
-
-void data_info::normalize(Normalizer * normalizer)
-{
-	average = getAverage();
-	std_deviation = getStdDeviation();
-
-	for (int i = 0; i < count; i++)
-	{
-		ratedList[i]->value = normalizer->calc(ratedList[i]->value, average, std_deviation, getMin(), getMax());
-	}
-}
-
-void data_info::denormalize(Normalizer * normalizer)
-{
-	average = getAverage();
-	std_deviation = getStdDeviation();
-
-	for (int i = 0; i < count; i++)
-	{				
-		ratedList[i]->value = normalizer->undo(ratedList[i]->value, average, std_deviation, getMin(), getMax());
-	}
-	resetValues();
-}
-
-void data_info::updateMaxMin(float value)
-{
-	if (value < min)
-	{
-		min = value;
-	}
-	if (value > max)
-	{
-		max = value;
-	}
-}
-
-float data_info::denormalize(float score, Normalizer * normalizer)
-{
-	return normalizer->undo(score, average, std_deviation, min, max);
-}
-
-float data_info::getStdDeviation()
-{
-	if (count == 1)
-		return 0;
-	if (std_deviation == -1)
-	{
-		float sum = 0, mean = getAverage(), deviation;
-		for (int i = 0; i < count; i++)
-		{
-			deviation = ratedList[i]->value - mean;
-			sum += deviation * deviation;
-		}
-		std_deviation = sqrt(sum / (count - 1));
-	}
-	return std_deviation;
-}
-
-float data_info::getMax()
-{
-	return max;
-}
-
-float data_info::getMin()
-{
-	return min;
-}
-
-void data_info::resetValues()
-{
-	average = 0;
-	std_deviation = 0;
-	max = 0;
-	min = 10;
-}
-
-void data_input::denormalizeUsers(Normalizer * normalizer)
-{
-	for (auto iterator = itemInfo.begin(); iterator != itemInfo.end(); iterator++)
-	{
-		iterator->second->resetValues();
-	}
-	for (auto iterator = userInfo.begin(); iterator != userInfo.end(); iterator++)
-	{
-		iterator->second->denormalize(normalizer);
-	}
-}
-
-void data_input::normalizeUsers(Normalizer * normalizer)
-{	
-	for (auto iterator = itemInfo.begin(); iterator != itemInfo.end(); iterator++)
-	{
-		iterator->second->getAverage();
-		iterator->second->getStdDeviation();
-	}
-	for (auto iterator = userInfo.begin(); iterator != userInfo.end(); iterator++)
-	{
-		iterator->second->normalize(normalizer);
-	}
-}
-
-float ZScoreNormalizer::calc(float originalValue, float average, float standardDeviation, float minValue, float maxValue)
-{
-	float result = originalValue - average;
-	if (standardDeviation != 0)
-	{
-		result /= standardDeviation;
-	}
-	return result;
-}
-
-float ZScoreNormalizer::undo(float normalizedValue, float average, float standardDeviation, float minValue, float maxValue)
-{	
-	float result = normalizedValue;
-	if (standardDeviation != 0)
-	{
-		result *= standardDeviation;
-	}
-	result += average;
-	return result;
-}
-
-string ZScoreNormalizer::getName()
-{
-	return "Z Score Normalization";
-}
-
-float MaxMinNormalizer::calc(float originalValue, float average, float standardDeviation, float minValue, float maxValue)
-{
-	float result = originalValue - minValue;
-	if (maxValue > minValue)
-	{
-		result /= maxValue - minValue;
-	}
-	return result;
-}
-
-float MaxMinNormalizer::undo(float normalizedValue, float average, float standardDeviation, float minValue, float maxValue)
-{
-	float result = normalizedValue;
-	if (maxValue > minValue)
-	{
-		result *= maxValue - minValue;
-	}
-	result += minValue;
-	return result;
-}
-
-string MaxMinNormalizer::getName()
-{
-	return "Max min normalizer";
-}
-
-

@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <map>
 #include <string>
 #include "Util.h"
 #include "Logger.h"
@@ -16,7 +17,13 @@
  */
 int main(int argc, char** argv) 
 {
-    std::system("clear");
+    int call = std::system("clear");
+    
+//    argv[1] = "content.csv";
+//    argv[2] = "ratings.csv";
+//    argv[3] = "targets.csv";
+//    argv[4] = "-l";
+//    argc = 5;
     
     std::string content_path = argv[1];
     std::string ratings_path = argv[2];
@@ -31,11 +38,14 @@ int main(int argc, char** argv)
             log = true;
         }
     }
-    Logger::SetShouldLog(log);
+    
+    Logger::SetShouldLog(log);    
+    
+    Logger::Log(content_path);
+    
+    content * input_content = read_content(content_path);
     
     Logger::Log("Finished");
-    
-    Logger::Endl();
     Logger::Endl();
     return 0;
 }
