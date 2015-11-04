@@ -33,8 +33,8 @@ content * read_content(std::string path)
     getline(infile, header);//ignore header
 
     Logger::Log("Loading content to memory");
-    infile >> *input;
-    //while (infile >> *input){}
+    
+    while (infile >> *input){}
 
     Logger::Log("Content loaded...");
 
@@ -55,8 +55,8 @@ std::istream & operator>>(std::istream & stream, content & input)
 //            "Metascore":"N/A","imdbRating":"7.7","imdbVotes":"1,502","imdbID":"tt0012278","Type":"movie","Response":"True"}
     std::string line;
     std::string garbage;
-    std::string itemId, title, year, rated, released, runtime, genre, director,writer,actors, plot, language, country, awards;
-    std::string poster, metascore, idmb_rating, idmb_votes, idmb_id, type, movie, response;
+    std::string itemId, title, year, rated, released, runtime, genre, director, writer, actors, plot, language, country, awards;
+    std::string poster, metascore, imdb_rating, imdb_votes, imdb_id, type, response;
     if (std::getline(stream, line))
     {
         std::stringstream iss(line);
@@ -77,18 +77,34 @@ std::istream & operator>>(std::istream & stream, content & input)
             std::getline(iss, awards, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
             std::getline(iss, poster, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
             std::getline(iss, metascore, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
-            std::getline(iss, idmb_rating, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
-            std::getline(iss, idmb_votes, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
-            std::getline(iss, idmb_id, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, imdb_rating, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, imdb_votes, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
+            std::getline(iss, imdb_id, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
             std::getline(iss, type, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
-            std::getline(iss, movie, '"') && std::getline(iss, garbage, ':') && std::getline(iss, garbage, '"') &&
             std::getline(iss, response, '"') && std::getline(iss, garbage, '\n'))
         {
             content_node * node = new content_node;
             node->item_id = itemId;
             node->title = title;
-            node->year = std::stoi(year);
+            node->year = tryConvertToInt(year);
             node->rated = rated;
+            node->released = released;
+            node->runtime_minutes = tryConvertToInt(runtime);
+            node->genre = genre;
+            node->director = director;
+            node->writer = writer;
+            node->actors = actors;
+            node->plot = plot;
+            node->language = language;
+            node->country = country;
+            node->awards = awards;
+            node->poster = poster;
+            node->metascore = metascore;
+            node->imdbRating = tryConvertToFloat(imdb_rating);
+            node->imdbVotes = tryConvertToInt(imdb_votes);
+            node->imdbID = imdb_id;
+            node->type = type;
+            node->response = response == "True";
             
             input.data[input.insert_index] = *node;
             input.insert_index++;
@@ -97,6 +113,31 @@ std::istream & operator>>(std::istream & stream, content & input)
         {
             Logger::Log("Error dos brabos");
             stream.setstate(std::ios::failbit);
-        }
+        }        
+    }
+    return stream;
+}
+
+float tryConvertToFloat(std::string text)
+{
+    try 
+    {
+        return std::stof(text);
+    } 
+    catch(...) 
+    {
+        return 0.0f;
+    }
+}
+
+int tryConvertToInt(std::string text)
+{
+    try 
+    {
+        return std::stoi(text);
+    } 
+    catch(...) 
+    {
+        return 0;
     }
 }

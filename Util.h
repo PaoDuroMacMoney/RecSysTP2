@@ -38,3 +38,5 @@ public:
 };
 
 content * read_content(std::string path);
+float tryConvertToFloat(std::string text);
+int tryConvertToInt(std::string text);

@@ -19,11 +19,11 @@ int main(int argc, char** argv)
 {
     int call = std::system("clear");
     
-//    argv[1] = "content.csv";
-//    argv[2] = "ratings.csv";
-//    argv[3] = "targets.csv";
-//    argv[4] = "-l";
-//    argc = 5;
+    argv[1] = "content.csv";
+    argv[2] = "ratings.csv";
+    argv[3] = "targets.csv";
+    argv[4] = "-l";
+    argc = 5;
     
     std::string content_path = argv[1];
     std::string ratings_path = argv[2];
