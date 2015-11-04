@@ -2,6 +2,19 @@
 
 #include <string>
 #include <vector>
+struct training_instance
+{
+    std::string * features;
+    float * feature_values;
+    int length;
+};
+
+struct training_data
+{
+    training_instance * instances;
+    float * values;
+    int length;
+};
 
 struct content_node
 {
