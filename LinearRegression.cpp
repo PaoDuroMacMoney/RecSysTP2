@@ -5,6 +5,7 @@
  * Created on 4 de Novembro de 2015, 10:42
  */
 
+#include <string>
 #include "LinearRegression.h"
 #include "Logger.h"
 
@@ -13,8 +14,8 @@ LinearRegression::LinearRegression(float learning_rate, float regularization_fac
     alpha = learning_rate;
     lambda = regularization_factor;
     hash_space = hash_size;
-    helper_sum = new float[hash_space](0);
-    weights = new float[hash_space](0);
+    helper_sum = new float[hash_space];
+    weights = new float[hash_space];
 }
 
 void LinearRegression::train(int epochs, training_data * x)
@@ -26,7 +27,7 @@ void LinearRegression::train(int epochs, training_data * x)
         for(int row = 0; row< rows; row++)
         {
             training_instance * instance = x->instances + row;
-            float y = x->values + row;
+            float y = *(x->values + row);
             float prediction = predict(instance);
             float instance_error = prediction - y;
             
@@ -42,17 +43,17 @@ void LinearRegression::train(int epochs, training_data * x)
         {
             int index = * iterator;            
             weights_cost += weights[index] * weights[index];
-            weights[index] = weights[index](1-alpha*lambda/rows) - (alpha*helper_sum[index]/rows);            
+            weights[index] = weights[index] * (1-alpha*lambda/rows) - (alpha*helper_sum[index]/rows);            
         }  
         
         cost_function += lambda * weights_cost;
         cost_function = cost_function/(2*rows);
         
-        std::string text ;
+        char text[80];
         sprintf(text, "Epoch = %d ; Cost Function = %f",epoch,cost_function);
         
-        Logger.Log(text);
-        helper_sum = new float[hash_space](0);        
+        Logger::Log(std::string(text));
+        helper_sum = new float[hash_space];        
     }
 }
 

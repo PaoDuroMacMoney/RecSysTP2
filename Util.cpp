@@ -4,6 +4,9 @@
 #include <fstream>
 #include <iostream>
 #include <sstream> 
+#include <algorithm>
+#include <unordered_set>
+
 
 content * read_content(std::string path)
 {
@@ -106,6 +109,8 @@ std::istream & operator>>(std::istream & stream, content & input)
             node->type = type;
             node->response = response == "True";
             
+            input.updateTitleDictionary(node);
+            input.updateDescriptionDictionary(node);
             input.data[input.insert_index] = *node;
             input.insert_index++;
         }
@@ -118,6 +123,65 @@ std::istream & operator>>(std::istream & stream, content & input)
     return stream;
 }
 
+void content::updateDictionary(dictionary * dictionary_to_update, std::string text)
+{
+    std::stringstream string_stream(text);
+    std::string word;
+    while (string_stream.good())
+    {
+        string_stream >> word;
+        dictionary_to_update->update(word);
+    } 
+}
+
+
+void dictionary::update(std::string word)
+{
+    static std::unordered_set<std::string> * stopwords = getStopWords();
+    
+    std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+    
+    word.erase(std::remove_if(word.begin(), word.end(),[](char c) { return !std::isalpha(c); } ), word.end());
+    
+    if(!stopwords->count(word))
+    {
+        (*data)[word]++;
+    }
+}
+
+std::unordered_set<std::string> * getStopWords()
+{
+    std::unordered_set<std::string> * result = new std::unordered_set<std::string>;
+    std::ifstream infile("StopWords");
+    
+    std::string stopWord;
+    while(infile.good())
+    {
+        std::getline(infile, stopWord);
+        result->insert(stopWord);
+    }
+    return result;
+}
+
+void content::updateTitleDictionary(content_node * node)
+{
+    updateDictionary(title_dictionary, node->title);
+}
+   
+void content::updateDescriptionDictionary(content_node * node)
+{
+    updateDictionary(description_dictionary , node->actors);
+    updateDictionary(description_dictionary , node->awards);
+    updateDictionary(description_dictionary , node->country);
+    updateDictionary(description_dictionary , node->director);
+    updateDictionary(description_dictionary , node->genre);
+    updateDictionary(description_dictionary , node->language);
+    updateDictionary(description_dictionary , node->plot);
+    updateDictionary(description_dictionary , node->rated);
+    updateDictionary(description_dictionary , node->type);
+    updateDictionary(description_dictionary , node->writer);
+}
+    
 float tryConvertToFloat(std::string text)
 {
     try 

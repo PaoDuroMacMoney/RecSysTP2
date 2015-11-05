@@ -2,6 +2,8 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include <unordered_set>
 struct training_instance
 {
     std::string * features;
@@ -41,15 +43,33 @@ struct content_node
     bool response;    
 };
 
+class dictionary
+{
+public:
+    void update(std::string word);
+private:
+    std::map<std::string, int> * data = new std::map<std::string, int>;
+    int length;
+};
+
 class content
 {
-    friend std::istream & operator>>(std::istream & stream, content & input);
+    friend std::istream & operator>>(std::istream & stream, content & input);    
 public:
+    void updateTitleDictionary(content_node * node);
+    void updateDescriptionDictionary(content_node * node);
     int length;
     int insert_index;
     content_node* data;
+    dictionary * title_dictionary = new dictionary;
+    dictionary * description_dictionary = new dictionary;
+private:
+    void updateDictionary(dictionary * dictionary_to_update, std::string text);
 };
 
 content * read_content(std::string path);
 float tryConvertToFloat(std::string text);
 int tryConvertToInt(std::string text);
+std::map<std::string, int> * buildDictionary(content * content_input);
+
+std::unordered_set<std::string> * getStopWords();
